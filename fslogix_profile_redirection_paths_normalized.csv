@@ -1,0 +1,124 @@
+Action,Copy,Path,Description,Notes
+Exclude,0,AppData\Local\Apps,Per-user app data for various Windows apps,!Warning - Broad exclusion; may impact app performance/behavior; only exclude if you understand app dependencies.
+Exclude,0,AppData\Local\Assembly,.NET Framework per-user assembly shadow copies,!Warning - Excluding can impact performance of some .NET apps (more re-generation); but reduces profile size.
+Exclude,0,AppData\Local\CEF,Chromium Embedded Framework cache/data,Usually safe; can increase first-launch time for CEF apps; resets embedded browser state.
+Exclude,0,AppData\Local\Comms,Windows communications cache/data,Generally safe; may affect some messaging/communications app state.
+Exclude,0,AppData\Local\CrashDumps,Per-user crash dump files,Safe; reduces profile bloat from dumps.
+Exclude,0,AppData\Local\Deployment,ClickOnce deployment cache,!Warning - Excluding may break ClickOnce apps or force re-download each session.
+Exclude,0,AppData\Local\Downloaded Installations,Windows per-user installer cache,!Warning - May break repair/uninstall of per-user installed apps; exclude only if you accept re-installs.
+Exclude,0,AppData\Local\FSLogix,FSLogix local logs/cache,Safe; recommended to keep container lean.
+Exclude,0,AppData\Local\Google\Chrome SxS\User Data\Default Cache,Chrome Canary (SxS) cache,Safe to exclude; reduces size; cache rebuilds.
+Exclude,0,AppData\Local\Google\Chrome\User Data\Ad Blocking,Chrome component/extension data (ad blocking),May reset extension component state; generally acceptable.
+Exclude,0,AppData\Local\Google\Chrome\User Data\BrowserMetrics,Chrome metrics/telemetry cache,Safe.
+Exclude,0,AppData\Local\Google\Chrome\User Data\CertificateRevocation,Chrome cert revocation cache,Safe; may re-fetch revocation data.
+Exclude,0,AppData\Local\Google\Chrome\User Data\CertificateTransparency,Chrome CT cache,Safe.
+Exclude,0,AppData\Local\Google\Chrome\User Data\Crashpad,Chrome crash reporting cache,Safe.
+Exclude,0,AppData\Local\Google\Chrome\User Data\Default\Application Cache,Chrome legacy appcache,Safe; web apps may re-cache content.
+Exclude,0,AppData\Local\Google\Chrome\User Data\Default\blob_storage,Chrome blob storage (web app state),Can impact some web apps; may force sign-in/state rebuild.
+Exclude,0,AppData\Local\Google\Chrome\User Data\Default\BudgetDatabase,Chrome storage budget DB,Safe; low user impact.
+Exclude,0,AppData\Local\Google\Chrome\User Data\Default\Cache,Chrome HTTP cache,Safe; improves profile size; increases first-browse downloads.
+Exclude,0,AppData\Local\Google\Chrome\User Data\Default\Cached Theme Image,Chrome cached theme imagery,Safe.
+Exclude,0,AppData\Local\Google\Chrome\User Data\Default\Code Cache,Chrome code cache (JS/WASM),Safe; pages may load slower on first run.
+Exclude,0,AppData\Local\Google\Chrome\User Data\Default\File System,Chrome FileSystem API storage,May affect some web apps/offline storage; accept if non-persistent.
+Exclude,0,AppData\Local\Google\Chrome\User Data\Default\GPUCache,Chrome GPU shader cache,Safe; rebuilds; minor first-render cost.
+Exclude,0,AppData\Local\Google\Chrome\User Data\Default\IndexedDB,Chrome IndexedDB storage,"!Warning - Can break persistence for many web apps (M365, Teams web, etc.); expect re-login and lost offline state."
+Exclude,0,AppData\Local\Google\Chrome\User Data\Default\JumpListIcons,Chrome jumplist icons cache,Safe.
+Exclude,0,AppData\Local\Google\Chrome\User Data\Default\JumpListIconsOld,Chrome old jumplist icons cache,Safe.
+Exclude,0,AppData\Local\Google\Chrome\User Data\Default\JumpListIconsRecentlyClosed,Chrome jumplist cache (recently closed),Safe.
+Exclude,0,AppData\Local\Google\Chrome\User Data\Default\JumpListIconsTopSites,Chrome jumplist cache (top sites),Safe.
+Exclude,0,AppData\Local\Google\Chrome\User Data\Default\Local Storage,Chrome Local Storage (web app state),!Warning - Many sites rely on it for tokens/preferences; exclusion can increase sign-in prompts.
+Exclude,0,AppData\Local\Google\Chrome\User Data\Default\Media Cache,Chrome media cache,Safe; re-download media content.
+Exclude,0,AppData\Local\Google\Chrome\User Data\Default\Pepper Data\Shockwave Flash\CacheWriteableAdobeRoot,Legacy Pepper Flash cache,Safe; Flash is deprecated; usually irrelevant.
+Exclude,0,AppData\Local\Google\Chrome\User Data\Default\Service Worker,Chrome service worker storage,May affect offline-capable web apps; typically OK in non-persistent.
+Exclude,0,AppData\Local\Google\Chrome\User Data\Default\SessionStorage,Chrome session storage,Safe; resets per-session web state; may log users out of some sessions.
+Exclude,0,AppData\Local\Google\Chrome\User Data\Default\Storage,Chrome storage (various),Broad impact; can reset web app state; only exclude if acceptable.
+Exclude,0,AppData\Local\Google\Chrome\User Data\Default\SyncData,Chrome sync working data,May affect Chrome profile sync behavior; users may need to re-sync.
+Exclude,0,AppData\Local\Google\Chrome\User Data\Default\SyncDataBackup,Chrome sync backup data,Safe.
+Exclude,0,AppData\Local\Google\Chrome\User Data\Default\WebApplications,Chrome installed web apps (PWAs) data,May remove PWA state/icons; acceptable in non-persistent.
+Exclude,0,AppData\Local\Google\Chrome\User Data\EVWhitelist,Chrome EV cert whitelist cache,Safe.
+Exclude,0,AppData\Local\Google\Chrome\User Data\FileTypePolicies,Chrome file type policies cache,Safe; low impact.
+Exclude,0,AppData\Local\Google\Chrome\User Data\InterventionPolicyDatabase,Chrome intervention policies DB,Safe.
+Exclude,0,AppData\Local\Google\Chrome\User Data\MEIPreload,Chrome MEI preload list,Safe.
+Exclude,0,AppData\Local\Google\Chrome\User Data\OriginTrials,Chrome origin trials cache,Safe.
+Exclude,0,AppData\Local\Google\Chrome\User Data\PepperFlash,Legacy PepperFlash component,Safe; deprecated.
+Exclude,0,AppData\Local\Google\Chrome\User Data\pnacl,Legacy PNaCl component cache,Safe; deprecated.
+Exclude,0,AppData\Local\Google\Chrome\User Data\recovery,Chrome recovery data,Safe.
+Exclude,0,AppData\Local\Google\Chrome\User Data\Safe Browsing,Chrome Safe Browsing cache/db,Usually OK; may increase network calls and slow first browsing slightly.
+Exclude,0,AppData\Local\Google\Chrome\User Data\ShaderCache,Chrome shader cache,Safe; rebuilds.
+Exclude,0,AppData\Local\Google\Chrome\User Data\SmartScreen,Chrome/Windows SmartScreen integration cache,Safe; minimal impact.
+Exclude,0,AppData\Local\Google\Chrome\User Data\SSLErrorAssistant,Chrome SSL error assistant cache,Safe.
+Exclude,0,AppData\Local\Google\Chrome\User Data\Subresource Filter,Chrome subresource filter cache,Safe.
+Exclude,0,AppData\Local\Google\Chrome\User Data\SwiftShader,Chrome SwiftShader binaries/cache,Safe; can re-download; may affect software rendering startup.
+Exclude,0,AppData\Local\Google\Chrome\User Data\SwReporter,Chrome Software Reporter data,Safe.
+Exclude,0,AppData\Local\Google\Chrome\User Data\Trust Protection Lists,Chrome trust protection lists cache,Safe.
+Exclude,0,AppData\Local\Google\Chrome\User Data\WidevineCDM,Widevine DRM module,!Warning - Excluding may break DRM playback (Netflix/DRM content) until module reinstalls.
+Exclude,0,AppData\Local\Google\Edge\User Data\Default\Code Cache,Google Chrome WebAssembly cache,!Warning - Google Chrome WebAssembly cache for the primary profile - May impact performance of apps that use WebAssembly
+Exclude,0,AppData\Local\Microsoft\Edge\User Data\Default\Cache,Microsoft Edge cache,Microsoft Edge cache for the primary profile - size can also be managed via policy
+Exclude,0,AppData\Local\Microsoft\Edge\User Data\Default\Code Cache,Microsoft Edge WebAssembly cache,!Warning - Microsoft Edge WebAssembly cache for the primary profile - May impact performance of apps that use WebAssembly
+Exclude,0,AppData\Local\Microsoft\Internet Explorer\DOMStore,IE DOM storage (legacy),Safe; legacy web apps may lose stored site preferences.
+Exclude,0,AppData\Local\Microsoft\Internet Explorer\Recovery,IE recovery data (legacy),Safe; prevents stale session recovery bloat.
+Exclude,0,AppData\Local\Microsoft\MSOIdentityCRL\Tracing,Office identity tracing logs,Safe.
+Exclude,0,AppData\Local\Microsoft\Notifications,Windows notifications database/cache,Safe; users may lose toast history.
+Exclude,0,AppData\Local\Microsoft\Office\16.0\Lync\Tracing,Skype for Business/Lync tracing logs,Safe to exclude.
+Exclude,0,AppData\Local\Microsoft\Office\SolutionPackages,Office solution add-in cache/packages,Generally safe; can rebuild; may delay first use of some add-ins.
+Exclude,0,AppData\Local\Microsoft\olk\Attachments,Microsoft Outlook - Stores user and app data,!Warning - Increased app launch time and repeated sign-ins - Details: https://learn.microsoft.com/en-us/microsoft-365-apps/outlook/get-started/virtualized-desktop-infrastructure
+Exclude,0,AppData\Local\Microsoft\olk\EbWebView\default\Cache,Microsoft Outlook - Caches network call contents,!Warning - Resources need to be re-downloaded - Details: https://learn.microsoft.com/en-us/microsoft-365-apps/outlook/get-started/virtualized-desktop-infrastructure
+Exclude,0,AppData\Local\Microsoft\olk\EbWebView\default\Code Cache,Microsoft Outlook - Stores cached web/JS scripts,!Warning - Slower app launches due to redownload of scripts - Details: https://learn.microsoft.com/en-us/microsoft-365-apps/outlook/get-started/virtualized-desktop-infrastructure
+Exclude,0,AppData\Local\Microsoft\olk\EbWebView\default\IndexedDB,Microsoft Outlook - Stores user and app data,!Warning - Increased app launch time and repeated sign-ins - Details: https://learn.microsoft.com/en-us/microsoft-365-apps/outlook/get-started/virtualized-desktop-infrastructure
+Exclude,0,AppData\Local\Microsoft\olk\EbWebView\default\Local Storage,Microsoft Outlook - Stores user and app data,!Warning - Increased app launch time and repeated sign-ins - Details: https://learn.microsoft.com/en-us/microsoft-365-apps/outlook/get-started/virtualized-desktop-infrastructure
+Exclude,0,AppData\Local\Microsoft\olk\EbWebView\default\Service Worker\CacheStorage,Microsoft Outlook - Stores cached web/JS scripts,!Warning - Slower app launches due to redownload of scripts - Details: https://learn.microsoft.com/en-us/microsoft-365-apps/outlook/get-started/virtualized-desktop-infrastructure
+Exclude,0,AppData\Local\Microsoft\olk\EbWebView\default\WebStorage,Microsoft Outlook diagnostics and performance logs,Details: https://learn.microsoft.com/en-us/microsoft-365-apps/outlook/get-started/virtualized-desktop-infrastructure
+Exclude,0,AppData\Local\Microsoft\olk\logs,Microsoft Outlook diagnostics and performance logs,Details: https://learn.microsoft.com/en-us/microsoft-365-apps/outlook/get-started/virtualized-desktop-infrastructure
+Exclude,0,AppData\Local\Microsoft\OneNote\16.0\Backup,OneNote local backup,Safe to exclude to reduce size; may reduce ability to recover local notes from backups.
+Exclude,0,AppData\Local\Microsoft\OneNote\16.0\OneNoteOfflineCache_Files,OneNote offline cache,Good candidate to exclude in VDI; notebooks may re-sync/re-download.
+Exclude,0,AppData\Local\Microsoft\Terminal Server Client,RDP client settings/cache (per-user),May remove saved RDP UI state/history; usually acceptable.
+Exclude,0,AppData\Local\Microsoft\TokenBroker\Cache,WAM/TokenBroker token cache,!Warning - Excluding can cause frequent re-auth prompts and increased sign-in time.
+Exclude,0,AppData\Local\Microsoft\Windows\ActionCenterCache,Action Center cache,Safe; notification center history may reset.
+Exclude,0,AppData\Local\Microsoft\Windows\AppCache,Windows app compatibility cache,Safe; may rebuild; can reduce profile bloat.
+Exclude,0,AppData\Local\Microsoft\Windows\Burn,Windows Burn (IMAPI) cache/temp,Safe; niche impact.
+Exclude,0,AppData\Local\Microsoft\Windows\DNTException,Windows per-user exceptions cache,Safe; niche impact.
+Exclude,0,AppData\Local\Microsoft\Windows\Explorer,Explorer thumbnail/icon cache,Good to exclude; improves logon size; thumbnails/icons rebuild (minor delay).
+Exclude,0,AppData\Local\Microsoft\Windows\GameExplorer,Legacy Game Explorer cache,Safe.
+Exclude,0,AppData\Local\Microsoft\Windows\IECompatCache,IE compatibility cache,Safe; legacy browsing performance may be impacted slightly.
+Exclude,0,AppData\Local\Microsoft\Windows\IECompatUaCache,IE UA compatibility cache,Safe; legacy browsing performance may be impacted slightly.
+Exclude,0,AppData\Local\Microsoft\Windows\INETCache,WinINET cache (modern path),Common to exclude; prevents growth; can cause re-downloads.
+Exclude,0,AppData\Local\Microsoft\Windows\Notifications,Windows notifications database/cache,Safe; users may lose notification history.
+Exclude,0,AppData\Local\Microsoft\Windows\PRICache,Resource index cache for apps (PRI),Safe; app UI resources may rebuild; minor first-launch cost.
+Exclude,0,AppData\Local\Microsoft\Windows\PrivacIE,IE privacy data (legacy),Safe; legacy impact only.
+Exclude,0,AppData\Local\Microsoft\Windows\RoamingTiles,Start menu tile cache (legacy),Safe; start layout may rebuild.
+Exclude,0,AppData\Local\Microsoft\Windows\Safety,Windows safety/maintenance cache,Safe; niche impact.
+Exclude,0,AppData\Local\Microsoft\Windows\SchCache,Windows scheduler cache,Safe; niche impact.
+Exclude,0,AppData\Local\Microsoft\Windows\Temporary Internet Files,WinINET temporary files (legacy),Common to exclude; prevents growth; legacy apps may re-download content.
+Exclude,0,AppData\Local\Microsoft\Windows\WebCache,WinINET/legacy Edge/IE web cache (ESE DB),Common to exclude to prevent growth/corruption; can force reauth for legacy web components.
+Exclude,0,AppData\Local\Microsoft\Windows\WER,Windows Error Reporting local cache,Safe; removes crash report queues.
+Exclude,0,AppData\Local\OneDrive\cache,OneDrive local cache,Often excluded in non-persistent; may increase sync/rehydration time; watch Files On-Demand behavior.
+Exclude,0,AppData\Local\Packages,UWP/Store app per-user data root,!Warning - Broad impact: can break UWP apps and their settings; exclude only if you do not rely on Store/UWP apps.
+Exclude,0,AppData\Local\Packages\MSTeams_8wekyb3d8bbwe\LocalCache\Microsoft\MSTeams\EBWebView\WV2Profile_tfw\Cache,Network calls cache, !Warning - Details: https://learn.microsoft.com/en-us/microsoftteams/new-teams-vdi-requirements-deploy#review-tradeoff-considerations-requiring-evaluation-and-testing-for-these-environments
+Exclude,0,AppData\Local\Packages\MSTeams_8wekyb3d8bbwe\LocalCache\Microsoft\MSTeams\EBWebView\WV2Profile_tfw\Code Cache,Code and caching of Web/JS Scripts, !Warning - Details: https://learn.microsoft.com/en-us/microsoftteams/new-teams-vdi-requirements-deploy#review-tradeoff-considerations-requiring-evaluation-and-testing-for-these-environments
+Exclude,0,AppData\Local\Packages\MSTeams_8wekyb3d8bbwe\LocalCache\Microsoft\MSTeams\EBWebView\WV2Profile_tfw\GPUCache,Microsoft Teams GPU cache, Details: https://learn.microsoft.com/en-us/microsoftteams/new-teams-vdi-requirements-deploy#recommended-for-exclusion
+Exclude,0,AppData\Local\Packages\MSTeams_8wekyb3d8bbwe\LocalCache\Microsoft\MSTeams\EBWebView\WV2Profile_tfw\IndexedDB,App and user data for web app cache, !Warning - Details: https://learn.microsoft.com/en-us/microsoftteams/new-teams-vdi-requirements-deploy#review-tradeoff-considerations-requiring-evaluation-and-testing-for-these-environments
+Exclude,0,AppData\Local\Packages\MSTeams_8wekyb3d8bbwe\LocalCache\Microsoft\MSTeams\EBWebView\WV2Profile_tfw\Service Worker\CacheStorage,Code and caching of Web/JS Scripts, !Warning - Details: https://learn.microsoft.com/en-us/microsoftteams/new-teams-vdi-requirements-deploy#review-tradeoff-considerations-requiring-evaluation-and-testing-for-these-environments
+Exclude,0,AppData\Local\Packages\MSTeams_8wekyb3d8bbwe\LocalCache\Microsoft\MSTeams\EBWebView\WV2Profile_tfw\WebStorage,New Teams (MSIX) WebView2 web storage cache,Common to exclude to limit growth; may cause sign-in/state rehydration on first launch.
+Exclude,0,AppData\Local\Packages\MSTeams_8wekyb3d8bbwe\LocalCache\Microsoft\MSTeams\Logs,New Teams logs,Safe to exclude; reduces noise and profile size.
+Exclude,0,AppData\Local\Packages\MSTeams_8wekyb3d8bbwe\LocalCache\Microsoft\MSTeams\PerfLogs,New Teams performance logs,Safe to exclude.
+Exclude,0,AppData\Local\Publishers\8wekyb3d8bbwe\TeamsSharedConfig\meeting-addin,Microsoft Outlook Teams Meeting add-in,!Warning - this could cause issues with the default meeting coordinates in the meeting templates inserted into Outlook - Details: https://learn.microsoft.com/en-us/microsoftteams/new-teams-vdi-requirements-deploy#profile-and-cache-location-for-new-teams-client
+Exclude,0,AppData\Local\SquirrelTemp,Installer temp used by Squirrel-based apps,Safe/typical to exclude; reduces profile bloat; recreated as needed.
+Exclude,0,AppData\Local\Sun,Java (Sun/Oracle) local data,Generally safe; may force Java components to rebuild caches.
+Exclude,0,AppData\Local\VirtualStore,UAC file/registry virtualization store,May affect legacy apps writing to protected paths; excluding can break persistence for those legacy apps.
+Exclude,0,AppData\Local\webex\cache,Webex cache,Safe; reduces profile growth; may slow first launch.
+Exclude,0,AppData\Local\webex\wbxcache,Webex media/cache,Safe; rebuilds.
+Exclude,0,AppData\Local\webex\webex64,Webex binaries/components cache,Potentially impacts Webex self-updates; usually acceptable if Webex is machine-installed/managed.
+Exclude,0,AppData\LocalLow\Adobe,Adobe low-integrity cache/data,Often safe; may reset some Adobe embedded browser/cache state.
+Include,3,AppData\LocalLow\Sun\Java\Deployment\security,Java deployment security (certs/exception sites),Including helps preserve Java trust settings; Copy=3 suggests copy/merge behavior per FSLogix schema.
+Exclude,0,AppData\Roaming\Microsoft\Document Building Blocks,Office building blocks (Quick Parts),May remove user custom Quick Parts; only exclude if acceptable.
+Exclude,0,AppData\Roaming\Microsoft\Teams\Application Cache,Teams (classic) application cache,Safe/typical to exclude; reduces profile size; content will rebuild.
+Exclude,0,AppData\Roaming\Microsoft\Teams\blob_storage,Teams (classic) Chromium blob storage,Safe/typical; can reduce profile bloat; may reset some in-app state.
+Exclude,0,AppData\Roaming\Microsoft\Teams\Cache,Teams (classic) cache,Safe/typical to exclude; may increase first-launch time.
+Exclude,0,AppData\Roaming\Microsoft\Teams\databases,Teams (classic) local databases,More impactful; may lose persisted Teams state; usually acceptable in non-persistent VDI.
+Exclude,0,AppData\Roaming\Microsoft\Teams\IndexedDB,Teams (classic) IndexedDB storage,More impactful; can reset auth/session tokens/state; expect re-login prompts.
+Exclude,0,AppData\Roaming\Microsoft\Teams\Media-Stack,Teams media components/cache,Typically safe; can resolve media stack corruption; may re-download components.
+Exclude,0,AppData\Roaming\Microsoft\Teams\Service Worker\CacheStorage,Teams service worker cache storage,Safe to exclude; may increase first-load time.
+Exclude,0,AppData\Roaming\Microsoft\Teams\Service Worker\ScriptCache,Teams service worker script cache,Safe to exclude.
+Exclude,0,AppData\Roaming\Microsoft\Templates\LiveContent,Office template live content cache,Safe; templates may re-download.
+Exclude,0,AppData\Roaming\Sun\Java\Deployment\cache,Java deployment cache,Safe; reduces roaming bloat; applets/WebStart (legacy) may re-download.
+Include,3,AppData\LocalLow\Sun\Java\Deployment\security,Java Security Folder,Include it to allow legacy Java settings to roam for users
