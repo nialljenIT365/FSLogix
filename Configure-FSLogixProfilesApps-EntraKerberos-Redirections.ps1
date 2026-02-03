@@ -347,7 +347,7 @@ if ([string]::IsNullOrWhiteSpace($RedirectionFileContent)) {
     return
 }
 
-# Optional sanity check: validate XML is well-formed before writing
+#sanity check: validate XML is well-formed before writing
 try {
     [void][xml]$RedirectionFileContent
     Write-Host "[OK]   Redirection XML is well-formed." -ForegroundColor Green
@@ -372,7 +372,7 @@ if (Test-Path -LiteralPath $RedirectionFileFullPath) {
         Write-Host ("[OK]   redirections.xml written (UTF-8 no BOM): {0}" -f $RedirectionFileFullPath) -ForegroundColor Green
         Write-Host ("[OK]   Size: {0} bytes | LastWriteTime: {1}" -f $fileInfo.Length, $fileInfo.LastWriteTime) -ForegroundColor Green
 
-        # Optional: verify there is no UTF-8 BOM
+        # verify there is no UTF-8 BOM
         $bytes = [System.IO.File]::ReadAllBytes($RedirectionFileFullPath)
         if ($bytes.Length -ge 3 -and $bytes[0] -eq 239 -and $bytes[1] -eq 187 -and $bytes[2] -eq 191) {
             Write-Host "[FAIL] File has UTF-8 BOM (EF BB BF)." -ForegroundColor Red
@@ -385,6 +385,9 @@ if (Test-Path -LiteralPath $RedirectionFileFullPath) {
 } else {
     Write-Host ("[FAIL] redirections.xml was not created: {0}" -f $RedirectionFileFullPath) -ForegroundColor Red
 }
+
+# Set the FSLogix Profiles registry value that tells FSLogix where to load the redirections.xml file from.
+Set-RegValueAndVerify -Path $profilesKey -Name "RedirXMLSourceFolder" -Type "String" -Value $RedirectionFilePath | Out-Null
 
 #######################
 #  Script Completion  #
