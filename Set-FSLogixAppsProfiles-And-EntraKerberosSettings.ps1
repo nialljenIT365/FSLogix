@@ -59,6 +59,104 @@ function Set-RegValueAndVerify {
 # UNC path to the Azure Files share used for FSLogix profile containers (VHD/VHDX location).
 $profileShare = "\\fslogix30012026.file.core.windows.net\fslogix"
 
+###############################
+#  FSLogix Install Validation #
+###############################
+Write-Host "Validating FSLogix installation..."
+
+$fslogix = [PSCustomObject]@{
+    Installed = $false
+    DisplayName = $null
+    Version = $null
+    InstallPath = $null
+    UninstallRegistryKey = $null
+}
+
+# Enumerate BOTH uninstall hives (64-bit + WOW6432Node)
+$uninstallKeys = @(
+    "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall",
+    "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall"
+)
+
+# IMPORTANT: do NOT use $matches (reserved automatic variable)
+$fslogixMatches = @()
+
+foreach ($baseKey in $uninstallKeys) {
+    if (-not (Test-Path $baseKey)) { continue }
+
+    foreach ($subKey in (Get-ChildItem -Path $baseKey -ErrorAction SilentlyContinue)) {
+        $props = Get-ItemProperty -Path $subKey.PSPath -ErrorAction SilentlyContinue
+        if (-not $props) { continue }
+
+        # Match anything containing "FSLogix" (e.g. "Microsoft FSLogix Apps")
+        if ($props.DisplayName -and $props.DisplayName -match "FSLogix") {
+            $fslogixMatches += [PSCustomObject]@{
+                DisplayName = $props.DisplayName
+                DisplayVersion = $props.DisplayVersion
+                InstallLocation = $props.InstallLocation
+                UninstallString = $props.UninstallString
+                RegistryKey = $subKey.Name
+            }
+        }
+    }
+}
+
+if ($fslogixMatches.Count -eq 0) {
+    Write-Host "[FAIL] FSLogix not found in either Uninstall registry path." -ForegroundColor Red
+    Write-Host ("[INFO] Checked: {0}" -f ($uninstallKeys -join " ; ")) -ForegroundColor Yellow
+}
+else {
+    # Pick the best match (highest version if possible)
+    $best = $fslogixMatches |
+        Sort-Object -Property @{
+            Expression = {
+                try { [version]$_.DisplayVersion } catch { [version]"0.0.0.0" }
+            }
+        } -Descending |
+        Select-Object -First 1
+
+    $fslogix.Installed = $true
+    $fslogix.DisplayName = $best.DisplayName
+    $fslogix.Version = $best.DisplayVersion
+    $fslogix.UninstallRegistryKey = $best.RegistryKey
+
+    # Resolve install path (prefer FSLogix Apps\InstallPath registry value)
+    $installPath = $null
+
+    if ($best.InstallLocation -and (Test-Path $best.InstallLocation)) {
+        $installPath = $best.InstallLocation
+    }
+
+    if (-not $installPath) {
+        $appsKey = "HKLM:\SOFTWARE\FSLogix\Apps"
+        if (Test-Path $appsKey) {
+            $appsInstallPath = (Get-ItemProperty -Path $appsKey -Name "InstallPath" -ErrorAction SilentlyContinue).InstallPath
+            if ($appsInstallPath -and (Test-Path $appsInstallPath)) {
+                $installPath = $appsInstallPath
+            }
+        }
+    }
+
+    if (-not $installPath) {
+        $common1 = "C:\Program Files\FSLogix\Apps"
+        $common2 = "C:\Program Files\FSLogix"
+        if (Test-Path $common1) { $installPath = $common1 }
+        elseif (Test-Path $common2) { $installPath = $common2 }
+    }
+
+    $fslogix.InstallPath = $installPath
+
+    Write-Host ("[OK]   FSLogix installed: {0}" -f $fslogix.DisplayName) -ForegroundColor Green
+    Write-Host ("[OK]   Version: {0}" -f $fslogix.Version) -ForegroundColor Green
+    Write-Host ("[OK]   Found in: {0}" -f $fslogix.UninstallRegistryKey) -ForegroundColor Green
+
+    if ($fslogix.InstallPath) {
+        Write-Host ("[OK]   Install path: {0}" -f $fslogix.InstallPath) -ForegroundColor Green
+    } else {
+        Write-Host "[WARN] Install path not resolved (Uninstall InstallLocation missing and FSLogix Apps InstallPath not found)." -ForegroundColor Yellow
+    }
+}
+
 ##########################
 #    App Configuration   #
 ##########################
