@@ -1,7 +1,5 @@
 <?xml version="1.0"?>
-
 <FrxProfileFolderRedirection ExcludeCommonFolders="0">
-
 <Excludes>
   <Exclude Copy="0">AppData\Local\Google\Chrome\User Data\Default\Cache</Exclude>
   <Exclude Copy="0">AppData\Local\Google\Chrome\User Data\Default\Cached Theme Images</Exclude>
@@ -48,9 +46,8 @@
   <Exclude Copy="0">AppData\Local\Packages\MSTeams_8wekyb3d8bbwe\LocalCache\Microsoft\MSTeams\PerfLogs</Exclude>
   <Exclude Copy="0">AppData\Local\Packages\MSTeams_8wekyb3d8bbwe\LocalCache\Microsoft\MSTeams\EBWebView\WV2Profile_tfw\WebStorage</Exclude>
 </Excludes>
-
 <Includes>
   <Include Copy="3">AppData\LocalLow\Sun\Java\Deployment\security</Include>
 </Includes>
-
 </FrxProfileFolderRedirection>
+
