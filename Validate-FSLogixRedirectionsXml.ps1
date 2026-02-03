@@ -1,0 +1,115 @@
+﻿####################################
+#  FSLogix Redirections Validation #
+####################################
+Write-Host "Validating FSLogix redirections.xml..."
+
+$profilesKey = "HKLM:\SOFTWARE\FSLogix\Profiles"
+$valueName   = "RedirXMLSourceFolder"
+$fileName    = "redirections.xml"
+
+# Track validation results for final object
+$hasBom          = $null
+$isWellFormedXml = $null
+$expandedFolder  = $null
+$expectedPath    = $null
+
+if (-not (Test-Path -LiteralPath $profilesKey)) {
+    Write-Host ("[FAIL] FSLogix Profiles registry key not found: {0}" -f $profilesKey) -ForegroundColor Red
+}
+
+# Check if the value exists
+$props = Get-ItemProperty -Path $profilesKey -ErrorAction SilentlyContinue
+if (-not $props -or -not ($props.PSObject.Properties.Name -contains $valueName)) {
+    Write-Host ("[FAIL] Registry value not found: {0}\{1}" -f $profilesKey, $valueName) -ForegroundColor Red
+}
+
+$redirFolder = (Get-ItemProperty -Path $profilesKey -Name $valueName -ErrorAction SilentlyContinue).$valueName
+
+if ([string]::IsNullOrWhiteSpace($redirFolder)) {
+    Write-Host ("[FAIL] {0}\{1} exists but is empty." -f $profilesKey, $valueName) -ForegroundColor Red
+    return
+}
+
+Write-Host ("[OK]   {0}\{1} = {2}" -f $profilesKey, $valueName, $redirFolder) -ForegroundColor Green
+
+# Expand any env vars (e.g. %ProgramFiles%) if present
+$expandedFolder = [Environment]::ExpandEnvironmentVariables($redirFolder)
+
+if ($expandedFolder -ne $redirFolder) {
+    Write-Host ("[OK]   Expanded path: {0}" -f $expandedFolder) -ForegroundColor Green
+}
+
+$expectedPath = Join-Path -Path $expandedFolder -ChildPath $fileName
+Write-Host ("[INFO] Expected redirections.xml path: {0}" -f $expectedPath) -ForegroundColor Yellow
+
+# Validate folder exists (with error detail for UNC/permissions issues)
+$folderExists = $false
+try {
+    $folderExists = Test-Path -LiteralPath $expandedFolder -ErrorAction Stop
+} catch {
+    $folderExists = $false
+    Write-Host ("[FAIL] Unable to access folder: {0} | {1}" -f $expandedFolder, $_.Exception.Message) -ForegroundColor Red
+}
+
+if ($folderExists) {
+    Write-Host ("[OK]   Folder exists: {0}" -f $expandedFolder) -ForegroundColor Green
+} else {
+    Write-Host ("[FAIL] Folder does not exist or is not accessible: {0}" -f $expandedFolder) -ForegroundColor Red
+}
+
+# Validate file exists (with error detail for UNC/permissions issues)
+$fileExists = $false
+try {
+    $fileExists = Test-Path -LiteralPath $expectedPath -ErrorAction Stop
+} catch {
+    $fileExists = $false
+    Write-Host ("[FAIL] Unable to access file path: {0} | {1}" -f $expectedPath, $_.Exception.Message) -ForegroundColor Red
+}
+
+if ($fileExists) {
+    $fi = Get-Item -LiteralPath $expectedPath -ErrorAction SilentlyContinue
+    Write-Host ("[OK]   redirections.xml found: {0}" -f $expectedPath) -ForegroundColor Green
+    if ($fi) {
+        Write-Host ("[OK]   Size: {0} bytes | LastWriteTime: {1}" -f $fi.Length, $fi.LastWriteTime) -ForegroundColor Green
+    }
+
+    # BOM check (true if BOM present)
+    try {
+        $bytes = [System.IO.File]::ReadAllBytes($expectedPath)
+        if ($bytes.Length -ge 3 -and $bytes[0] -eq 239 -and $bytes[1] -eq 187 -and $bytes[2] -eq 191) {
+            $hasBom = $true
+            Write-Host "[FAIL] File has UTF-8 BOM (EF BB BF)." -ForegroundColor Red
+        } else {
+            $hasBom = $false
+            Write-Host "[OK]   File has no UTF-8 BOM." -ForegroundColor Green
+        }
+    } catch {
+        $hasBom = $null
+        Write-Host ("[FAIL] Unable to read file bytes for BOM check: {0} | {1}" -f $expectedPath, $_.Exception.Message) -ForegroundColor Red
+    }
+
+    # Well-formed XML check
+    try {
+        [void][xml](Get-Content -LiteralPath $expectedPath -Raw -ErrorAction Stop)
+        $isWellFormedXml = $true
+        Write-Host "[OK]   redirections.xml is well-formed XML." -ForegroundColor Green
+    } catch {
+        $isWellFormedXml = $false
+        Write-Host ("[FAIL] redirections.xml is not valid XML: {0}" -f $_.Exception.Message) -ForegroundColor Red
+    }
+
+} else {
+    Write-Host ("[FAIL] redirections.xml not found or not accessible at expected path: {0}" -f $expectedPath) -ForegroundColor Red
+}
+
+# Emit object for callers/logging
+[PSCustomObject]@{
+    ProfilesKey        = $profilesKey
+    ValueName          = $valueName
+    RedirectionsFolder = $expandedFolder
+    RedirectionsPath   = $expectedPath
+    FolderExists       = $folderExists
+    FileExists         = $fileExists
+    IsWellFormedXml    = $isWellFormedXml
+    Utf8BOMDetected    = $hasBom
+}
