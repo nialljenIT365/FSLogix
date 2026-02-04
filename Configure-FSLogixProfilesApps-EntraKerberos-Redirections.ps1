@@ -394,4 +394,13 @@ Set-RegValueAndVerify -Path $profilesKey -Name "RedirXMLSourceFolder" -Type "Str
 #######################
 
 Write-Host "Entra Kerberos enabled and Credential Manager profile binding configured."
+
+Write-Host ""
+Write-Host "============================================" -ForegroundColor Yellow
+Write-Host "REBOOT REQUIRED" -ForegroundColor Yellow
+Write-Host "These changes will not fully take effect until this device is restarted." -ForegroundColor Yellow
+Write-Host "Please reboot at your earliest convenience." -ForegroundColor Yellow
+Write-Host "============================================" -ForegroundColor Yellow
+Write-Host ""
+
 Write-Host "Configuration Complete"
