@@ -1,0 +1,83 @@
+###################
+#    Functions    #
+###################
+# Set-RegValueAndVerify
+# Creates/overwrites a registry value, then reads it back and prints [OK]/[FAIL] to confirm it matches the expected value.
+# Supports DWord, String, ExpandString, MultiString, QWord, and Binary.
+# Example (String)
+#Set-RegValueAndVerify -Path $profilesKey -Name "VolumeType" -Type "String" -Value "vhdx" | Out-Null
+function Set-RegValueAndVerify {
+    param(
+        [Parameter(Mandatory)][string]$Path,
+        [Parameter(Mandatory)][string]$Name,
+        [Parameter(Mandatory)]
+        [ValidateSet("DWord","String","ExpandString","MultiString","QWord","Binary")]
+        [string]$Type,
+        [Parameter(Mandatory)]$Value
+    )
+    try {
+        # Create/update the value
+        New-ItemProperty -Path $Path -Name $Name -PropertyType $Type -Value $Value -Force | Out-Null
+        # Read back
+        $actual = (Get-ItemProperty -Path $Path -Name $Name -ErrorAction Stop).$Name
+        # Compare (handle MultiString arrays properly)
+        $isMatch = $false
+        if ($Type -eq "MultiString") {
+            $expectedArr = @($Value)
+            $actualArr   = @($actual)
+            $isMatch     = (($expectedArr -join "`n") -eq ($actualArr -join "`n"))
+        } elseif ($Type -in @("Binary")) {
+            $expectedArr = @($Value)
+            $actualArr   = @($actual)
+            $isMatch     = (($expectedArr -join ",") -eq ($actualArr -join ","))
+        } else {
+            $isMatch = ($actual -eq $Value)
+        }
+        if ($isMatch) {
+            Write-Host ("[OK]   {0}\{1} ({2}) = {3}" -f $Path, $Name, $Type, ($actual -join ",")) -ForegroundColor Green
+            return $true
+        } else {
+            Write-Host ("[FAIL] {0}\{1} ({2}) expected '{3}' but found '{4}'" -f $Path, $Name, $Type, ($Value -join ","), ($actual -join ",")) -ForegroundColor Red
+            return $false
+        }
+    }
+    catch {
+        Write-Host ("[FAIL] {0}\{1} - {2}" -f $Path, $Name, $_.Exception.Message) -ForegroundColor Red
+        return $false
+    }
+}
+
+#  Entra Kerberos + CredKeys  #
+###############################
+Write-Host "Configuring FSLogix Kerberos + CredKeys Settings"
+# Enable Cloud Kerberos ticket retrieval (equivalent to the GPO / CSP)
+New-Item -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\Kerberos" -Name "Parameters" -Force | Out-Null
+$krbParamsKey = "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\Kerberos\Parameters"
+if (Test-Path $krbParamsKey) {
+    Write-Host ("[OK]   Registry key exists: {0}" -f $krbParamsKey) -ForegroundColor Green
+} else {
+    Write-Host ("[FAIL] Registry key missing: {0}" -f $krbParamsKey) -ForegroundColor Red
+}
+Set-RegValueAndVerify -Path $krbParamsKey -Name "CloudKerberosTicketRetrievalEnabled" -Type "DWord" -Value 1 | Out-Null
+# Ensure Credential Manager keys are taken from the currently loading profile (FSLogix roaming)
+New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft" -Name "AzureADAccount" -Force | Out-Null
+$azureAdAccountKey = "HKLM:\SOFTWARE\Policies\Microsoft\AzureADAccount"
+if (Test-Path $azureAdAccountKey) {
+    Write-Host ("[OK]   Registry key exists: {0}" -f $azureAdAccountKey) -ForegroundColor Green
+} else {
+    Write-Host ("[FAIL] Registry key missing: {0}" -f $azureAdAccountKey) -ForegroundColor Red
+}
+Set-RegValueAndVerify -Path $azureAdAccountKey -Name "LoadCredKeyFromProfile" -Type "DWord" -Value 1 | Out-Null
+###############################
+#  Entra ID Kerberos realm  #
+###############################
+Write-Host "Map .file.core.windows.net to the Entra ID Kerberos realm"
+New-Item -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\Kerberos\HostToRealm" -Force | Out-Null
+$hostToRealmKey = "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\Kerberos\HostToRealm\KERBEROS.MICROSOFTONLINE.COM"
+New-Item -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\Kerberos\HostToRealm\KERBEROS.MICROSOFTONLINE.COM" -Force | Out-Null
+if (Test-Path $hostToRealmKey) {
+    Write-Host ("[OK]   Registry key exists: {0}" -f $hostToRealmKey) -ForegroundColor Green
+} else {
+    Write-Host ("[FAIL] Registry key missing: {0}" -f $hostToRealmKey) -ForegroundColor Red
+}
+Set-RegValueAndVerify -Path $hostToRealmKey -Name "SpnMappings" -Type "MultiString" -Value @(".file.core.windows.net") | Out-Null
