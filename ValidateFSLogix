@@ -1,0 +1,258 @@
+#Requires -RunAsAdministrator
+<#
+.SYNOPSIS
+    Checks the presence and values of FSLogix registry keys and settings.
+
+.DESCRIPTION
+    Verifies that all expected FSLogix App and Profile registry keys and values
+    exist and match expected configuration. Outputs a summary with pass/fail status.
+
+.NOTES
+    Run as Administrator.
+#>
+
+$ErrorActionPreference = "SilentlyContinue"
+
+$passCount = 0
+$failCount = 0
+$results   = [System.Collections.Generic.List[PSCustomObject]]::new()
+
+function Test-RegValue {
+    param (
+        [string]$Path,
+        [string]$Name,
+        [string]$ExpectedType,
+        $ExpectedValue
+    )
+
+    $keyExists = Test-Path $Path
+    if (-not $keyExists) {
+        return [PSCustomObject]@{
+            Path          = $Path
+            Name          = $Name
+            ExpectedType  = $ExpectedType
+            ExpectedValue = $ExpectedValue
+            ActualValue   = $null
+            Status        = "FAIL"
+            Note          = "Registry key path does not exist"
+        }
+    }
+
+    $item = Get-ItemProperty -Path $Path -Name $Name -ErrorAction SilentlyContinue
+
+    if ($null -eq $item -or $null -eq $item.$Name) {
+        return [PSCustomObject]@{
+            Path          = $Path
+            Name          = $Name
+            ExpectedType  = $ExpectedType
+            ExpectedValue = $ExpectedValue
+            ActualValue   = $null
+            Status        = "FAIL"
+            Note          = "Value not found"
+        }
+    }
+
+    $actualValue = $item.$Name
+    $match = ($actualValue -eq $ExpectedValue)
+
+    return [PSCustomObject]@{
+        Path          = $Path
+        Name          = $Name
+        ExpectedType  = $ExpectedType
+        ExpectedValue = $ExpectedValue
+        ActualValue   = $actualValue
+        Status        = if ($match) { "PASS" } else { "FAIL" }
+        Note          = if ($match) { "" } else { "Value mismatch" }
+    }
+}
+
+##########################
+#    Registry Paths      #
+##########################
+
+$appsKey     = "HKLM:\SOFTWARE\FSLogix\Apps"
+$profilesKey = "HKLM:\SOFTWARE\FSLogix\Profiles"
+
+##########################
+#    Apps Settings       #
+##########################
+
+Write-Host "`n=== FSLogix App Configuration ===" -ForegroundColor Cyan
+
+$appsChecks = @(
+    @{ Name = "CleanupInvalidSessions"; Type = "DWord";  Value = 1 }
+    @{ Name = "RoamRecycleBin";         Type = "DWord";  Value = 0 }
+    @{ Name = "VHDCompactDisk";         Type = "DWord";  Value = 1 }
+)
+
+foreach ($check in $appsChecks) {
+    $result = Test-RegValue -Path $appsKey -Name $check.Name -ExpectedType $check.Type -ExpectedValue $check.Value
+    $results.Add($result)
+}
+
+##########################
+#    Profile Settings    #
+##########################
+
+Write-Host "=== FSLogix Profile Configuration ===" -ForegroundColor Cyan
+
+$profileChecks = @(
+    @{ Name = "Enabled";                              Type = "DWord";  Value = 1      }
+    @{ Name = "DeleteLocalProfileWhenVHDShouldApply"; Type = "DWord";  Value = 1      }
+    @{ Name = "FlipFlopProfileDirectoryName";         Type = "DWord";  Value = 1      }
+    @{ Name = "IgnoreNonWVD";                         Type = "DWord";  Value = 1      }
+    @{ Name = "OutlookCachedMode";                    Type = "DWord";  Value = 1      }
+    @{ Name = "PreventLoginWithFailure";              Type = "DWord";  Value = 1      }
+    @{ Name = "PreventLoginWithTempProfile";          Type = "DWord";  Value = 1      }
+    @{ Name = "ProfileType";                          Type = "DWord";  Value = 3      }
+    @{ Name = "SizeInMBs";                            Type = "DWord";  Value = 30000  }
+    @{ Name = "VolumeType";                           Type = "String"; Value = "vhdx" }
+)
+
+foreach ($check in $profileChecks) {
+    $result = Test-RegValue -Path $profilesKey -Name $check.Name -ExpectedType $check.Type -ExpectedValue $check.Value
+    $results.Add($result)
+}
+
+# VHDLocations — presence check only (value is environment-specific)
+$vhdCheck = Get-ItemProperty -Path $profilesKey -Name "VHDLocations" -ErrorAction SilentlyContinue
+$vhdResult = [PSCustomObject]@{
+    Path          = $profilesKey
+    Name          = "VHDLocations"
+    ExpectedType  = "String"
+    ExpectedValue = "<environment-specific>"
+    ActualValue   = if ($vhdCheck) { $vhdCheck.VHDLocations } else { $null }
+    Status        = if ($vhdCheck -and $vhdCheck.VHDLocations) { "PASS" } else { "FAIL" }
+    Note          = if (-not $vhdCheck -or -not $vhdCheck.VHDLocations) { "Value not found" } else { "Present (value not validated)" }
+}
+$results.Add($vhdResult)
+
+####################################
+#  FSLogix Redirections Validation #
+####################################
+
+Write-Host "=== FSLogix Redirections Validation ===" -ForegroundColor Cyan
+
+$valueName   = "RedirXMLSourceFolder"
+$fileName    = "redirections.xml"
+$redirResults = [System.Collections.Generic.List[PSCustomObject]]::new()
+
+# Step 1 — Check RedirXMLSourceFolder registry value exists
+$redirReg = Get-ItemProperty -Path $profilesKey -Name $valueName -ErrorAction SilentlyContinue
+$redirPath = if ($redirReg) { $redirReg.$valueName } else { $null }
+
+$regResult = [PSCustomObject]@{
+    Check  = "Registry value present"
+    Detail = "$profilesKey\$valueName"
+    Status = if ($redirPath) { "PASS" } else { "FAIL" }
+    Note   = if ($redirPath) { $redirPath } else { "Value '$valueName' not found in registry" }
+}
+$redirResults.Add($regResult)
+
+# Step 2 — Check the path in the registry value actually exists (if we got one)
+if ($redirPath) {
+    $pathExists = Test-Path $redirPath
+    $redirResults.Add([PSCustomObject]@{
+        Check  = "Source folder exists"
+        Detail = $redirPath
+        Status = if ($pathExists) { "PASS" } else { "FAIL" }
+        Note   = if ($pathExists) { "Folder accessible" } else { "Path not found or inaccessible" }
+    })
+
+    # Step 3 — Check redirections.xml exists inside that folder
+    if ($pathExists) {
+        $xmlPath   = Join-Path $redirPath $fileName
+        $xmlExists = Test-Path $xmlPath
+        $redirResults.Add([PSCustomObject]@{
+            Check  = "redirections.xml present"
+            Detail = $xmlPath
+            Status = if ($xmlExists) { "PASS" } else { "FAIL" }
+            Note   = if ($xmlExists) { "File found" } else { "File not found in source folder" }
+        })
+
+        # Step 4 — Basic XML validity check
+        if ($xmlExists) {
+            try {
+                [xml]$xmlContent = Get-Content -Path $xmlPath -Raw -ErrorAction Stop
+                $redirResults.Add([PSCustomObject]@{
+                    Check  = "redirections.xml is valid XML"
+                    Detail = $xmlPath
+                    Status = "PASS"
+                    Note   = "Parsed successfully"
+                })
+
+                # Step 5 — Report how many <Folder> entries are defined
+                $folderCount = $xmlContent.SelectNodes("//Folder").Count
+                $redirResults.Add([PSCustomObject]@{
+                    Check  = "Folder redirect entries found"
+                    Detail = $xmlPath
+                    Status = if ($folderCount -gt 0) { "PASS" } else { "WARN" }
+                    Note   = "$folderCount <Folder> element(s) defined"
+                })
+            }
+            catch {
+                $redirResults.Add([PSCustomObject]@{
+                    Check  = "redirections.xml is valid XML"
+                    Detail = $xmlPath
+                    Status = "FAIL"
+                    Note   = "XML parse error: $_"
+                })
+            }
+        }
+    }
+}
+
+# Output redirection results as a separate table
+Write-Host ("{0,-40} {1,-65} {2,-6} {3}" -f "Check", "Detail", "Status", "Note")
+Write-Host ("-" * 140)
+
+foreach ($r in $redirResults) {
+    $color = switch ($r.Status) {
+        "PASS" { "Green"  }
+        "WARN" { "Yellow" }
+        default { "Red"   }
+    }
+    Write-Host ("{0,-40} {1,-65} {2,-6} {3}" -f $r.Check, $r.Detail, $r.Status, $r.Note) -ForegroundColor $color
+
+    # Feed redir results into overall pass/fail counts
+    if ($r.Status -eq "PASS") { $passCount++ }
+    elseif ($r.Status -eq "FAIL") { $failCount++ }
+    # WARNs don't count as failures
+}
+
+##########################
+#    Output Results      #
+##########################
+
+Write-Host "`n=== Results ===" -ForegroundColor Cyan
+Write-Host ("{0,-55} {1,-35} {2,-15} {3,-15} {4}" -f "Path", "Name", "Expected", "Actual", "Status")
+Write-Host ("-" * 140)
+
+foreach ($r in $results) {
+    $color = if ($r.Status -eq "PASS") { "Green" } else { "Red" }
+    $line  = "{0,-55} {1,-35} {2,-15} {3,-15} {4}" -f `
+        ($r.Path -replace "HKLM:\\SOFTWARE\\FSLogix\\", "...\"), `
+        $r.Name, `
+        $r.ExpectedValue, `
+        $(if ($null -ne $r.ActualValue) { $r.ActualValue } else { "N/A" }), `
+        $(if ($r.Note) { "$($r.Status) — $($r.Note)" } else { $r.Status })
+
+    Write-Host $line -ForegroundColor $color
+
+    if ($r.Status -eq "PASS") { $passCount++ } else { $failCount++ }
+}
+
+##########################
+#    Summary             #
+##########################
+
+Write-Host "`n=== Summary ===" -ForegroundColor Cyan
+Write-Host ("Total checks : {0}" -f $results.Count)
+Write-Host ("Passed       : {0}" -f $passCount) -ForegroundColor Green
+Write-Host ("Failed       : {0}" -f $failCount) -ForegroundColor $(if ($failCount -gt 0) { "Red" } else { "Green" })
+
+if ($failCount -eq 0) {
+    Write-Host "`nAll FSLogix registry values are present and correctly configured." -ForegroundColor Green
+} else {
+    Write-Host "`nOne or more FSLogix registry values are missing or misconfigured. Review the FAIL entries above." -ForegroundColor Red
+}
