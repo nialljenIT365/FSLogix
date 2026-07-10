@@ -1,0 +1,15 @@
+# Strip inherited ACEs
+icacls Z:\ /inheritance:r
+
+# Grant FSLogix permissions
+icacls Z:\ /grant:r "BUILTIN\Administrators:(OI)(CI)F"
+icacls Z:\ /grant "enerveo\Nerdio-Admin:(OI)(CI)F"
+icacls Z:\ /grant "NT AUTHORITY\SYSTEM:(OI)(CI)F"
+icacls Z:\ /grant "CREATOR OWNER:(OI)(CI)(IO)M"
+icacls Z:\ /grant "Authenticated Users:M"
+
+
+icacls Z:\ /grant "enerveo\Andy.Meredith.Admin:(OI)(CI)F"
+
+
+icacls Z:\ /grant "enerveo\test.user4:(OI)(CI)F"
