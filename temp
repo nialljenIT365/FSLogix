@@ -15,3 +15,11 @@ $acl.SetSecurityDescriptorSddlForm($sddl)
 Set-Acl -Path $path -AclObject $acl
 
 icacls $path   # verify
+
+
+\\azuksevstgfslogix.file.core.windows.net\fsl-dt-int-prd
+\\azuksevstgfslogix.file.core.windows.net\fsl-dt-int-uat
+\\azuksevstgfslogix.file.core.windows.net\fsl-ra-ext-prd
+\\azuksevstgfslogix.file.core.windows.net\fsl-ra-ext-uat
+\\azuksevstgfslogix.file.core.windows.net\fsl-ra-int-prd
+\\azuksevstgfslogix.file.core.windows.net\fsl-ra-int-uat
