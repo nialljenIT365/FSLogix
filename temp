@@ -23,3 +23,7 @@ icacls $path   # verify
 \\azuksevstgfslogix.file.core.windows.net\fsl-ra-ext-uat
 \\azuksevstgfslogix.file.core.windows.net\fsl-ra-int-prd
 \\azuksevstgfslogix.file.core.windows.net\fsl-ra-int-uat
+
+https://nmw-app-bcrmh7myjh3xk.azurewebsites.net/workspaces
+niall.jennings@enerveo.com
+
