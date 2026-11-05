@@ -114,7 +114,7 @@ foreach ($check in $profileChecks) {
     $results.Add($result)
 }
 
-# VHDLocations — presence check only (value is environment-specific)
+# VHDLocations - presence check only (value is environment-specific)
 $vhdCheck = Get-ItemProperty -Path $profilesKey -Name "VHDLocations" -ErrorAction SilentlyContinue
 $vhdResult = [PSCustomObject]@{
     Path          = $profilesKey
@@ -137,7 +137,7 @@ $valueName   = "RedirXMLSourceFolder"
 $fileName    = "redirections.xml"
 $redirResults = [System.Collections.Generic.List[PSCustomObject]]::new()
 
-# Step 1 — Check RedirXMLSourceFolder registry value exists
+# Step 1 - Check RedirXMLSourceFolder registry value exists
 $redirReg = Get-ItemProperty -Path $profilesKey -Name $valueName -ErrorAction SilentlyContinue
 $redirPath = if ($redirReg) { $redirReg.$valueName } else { $null }
 
@@ -149,7 +149,7 @@ $regResult = [PSCustomObject]@{
 }
 $redirResults.Add($regResult)
 
-# Step 2 — Check the path in the registry value actually exists (if we got one)
+# Step 2 - Check the path in the registry value actually exists (if we got one)
 if ($redirPath) {
     $pathExists = Test-Path $redirPath
     $redirResults.Add([PSCustomObject]@{
@@ -159,7 +159,7 @@ if ($redirPath) {
         Note   = if ($pathExists) { "Folder accessible" } else { "Path not found or inaccessible" }
     })
 
-    # Step 3 — Check redirections.xml exists inside that folder
+    # Step 3 - Check redirections.xml exists inside that folder
     if ($pathExists) {
         $xmlPath   = Join-Path $redirPath $fileName
         $xmlExists = Test-Path $xmlPath
@@ -170,7 +170,7 @@ if ($redirPath) {
             Note   = if ($xmlExists) { "File found" } else { "File not found in source folder" }
         })
 
-        # Step 4 — Basic XML validity check
+        # Step 4 - Basic XML validity check
         if ($xmlExists) {
             try {
                 [xml]$xmlContent = Get-Content -Path $xmlPath -Raw -ErrorAction Stop
@@ -181,7 +181,7 @@ if ($redirPath) {
                     Note   = "Parsed successfully"
                 })
 
-                # Step 5 — Report how many <Folder> entries are defined
+                # Step 5 - Report how many <Folder> entries are defined
                 $folderCount = $xmlContent.SelectNodes("//Folder").Count
                 $redirResults.Add([PSCustomObject]@{
                     Check  = "Folder redirect entries found"
@@ -235,7 +235,7 @@ foreach ($r in $results) {
         $r.Name, `
         $r.ExpectedValue, `
         $(if ($null -ne $r.ActualValue) { $r.ActualValue } else { "N/A" }), `
-        $(if ($r.Note) { "$($r.Status) — $($r.Note)" } else { $r.Status })
+        $(if ($r.Note) { "$($r.Status) - $($r.Note)" } else { $r.Status })
 
     Write-Host $line -ForegroundColor $color
 
@@ -247,7 +247,7 @@ foreach ($r in $results) {
 ##########################
 
 Write-Host "`n=== Summary ===" -ForegroundColor Cyan
-Write-Host ("Total checks : {0}" -f $results.Count)
+Write-Host ("Total checks : {0}" -f ($results.Count + $redirResults.Count))
 Write-Host ("Passed       : {0}" -f $passCount) -ForegroundColor Green
 Write-Host ("Failed       : {0}" -f $failCount) -ForegroundColor $(if ($failCount -gt 0) { "Red" } else { "Green" })
 
